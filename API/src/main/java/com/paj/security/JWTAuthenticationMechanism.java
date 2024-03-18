@@ -2,6 +2,7 @@ package com.paj.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.security.enterprise.AuthenticationException;
@@ -13,10 +14,12 @@ import jakarta.security.enterprise.identitystore.CredentialValidationResult;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.HttpMethod;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
@@ -26,6 +29,8 @@ import java.util.Objects;
 public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     private final String LOGIN_URL = "/auth/login";
     private final String JWT_SECRET_FILE_LOCATION = "/jwt.sercret";
+    private final String JWT_COOKIE_NAME = "Token";
+    private final String JWT_ISSUER = "PAJ-Payara-Server";
     private final long JWT_VALIDITY_IN_MILISECONDS = (10 * 60 * 1000); // 10 minutes
 
     @Inject
@@ -37,11 +42,11 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
                                                 HttpMessageContext httpMessageContext) throws AuthenticationException {
         // If the user is accessing the login URL, perform the basic authentication using username and password
         // and if correct credentials were provided, set a HttpOnly cookie containing the JWT
-        if(httpServletRequest.getPathInfo().equals(LOGIN_URL))
+        if(httpServletRequest.getPathInfo().equals(LOGIN_URL) && httpServletRequest.getMethod().equals(HttpMethod.POST))
             return usernameAndPasswordLogin(httpServletRequest, httpServletResponse, httpMessageContext);
 
-        var cookies = httpServletRequest.getCookies();
-        return httpMessageContext.doNothing();
+        // Otherwise, check that the request is coming with a valid JWT cookie
+        return validateToken(httpServletRequest, httpServletResponse, httpMessageContext);
     }
 
     private AuthenticationStatus usernameAndPasswordLogin(HttpServletRequest httpServletRequest,
@@ -66,24 +71,59 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
         return httpMessageContext.notifyContainerAboutLogin(validationResult);
     }
 
+    private AuthenticationStatus validateToken(HttpServletRequest httpServletRequest,
+                                               HttpServletResponse httpServletResponse,
+                                               HttpMessageContext httpMessageContext) {
+        var cookies = httpServletRequest.getCookies();
+        // If no cookies are found, respond with unauthorized
+        if(cookies == null)
+            return httpMessageContext.responseUnauthorized();
+
+        // Get the token cookie
+        var tokenCookie = Arrays.stream(cookies)
+                .filter(cookie -> cookie.getName().equals(JWT_COOKIE_NAME))
+                .findFirst();
+
+        // If no token cookie is present, respond with unauthorized
+        if(tokenCookie.isEmpty())
+            return httpMessageContext.responseUnauthorized();
+
+        var token = JWT.decode(tokenCookie.get().getValue());
+        try {
+            // Verify that the token has not been modified by checking that the signature matches
+            var algorithm = Algorithm.HMAC256(getKeyString());
+            JWT.require(algorithm)
+                    .withIssuer(JWT_ISSUER)
+                    .build()
+                    .verify(token);
+        } catch (JWTVerificationException e) {
+            // Invalid token
+            return httpMessageContext.responseUnauthorized();
+        }
+
+        return httpMessageContext.notifyContainerAboutLogin(new CredentialValidationResult(token.getSubject()));
+    }
+
+    // Create the jwt and add it in a HttpOnly cookie
     private void addTokenCookie(HttpServletResponse httpServletResponse,
                                 CredentialValidationResult validationResult) {
         var algorithm = Algorithm.HMAC256(getKeyString());
         var expiration = System.currentTimeMillis() + JWT_VALIDITY_IN_MILISECONDS;
         var token = JWT.create()
-                .withIssuer("PAJ-Payara-Server")
+                .withIssuer(JWT_ISSUER)
                 .withSubject(validationResult.getCallerPrincipal().getName())
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(expiration))
                 .sign(algorithm);
 
-        var tokenCookie = new Cookie("Token", token);
+        var tokenCookie = new Cookie(JWT_COOKIE_NAME, token);
         tokenCookie.setHttpOnly(true);
         tokenCookie.setMaxAge((int) (JWT_VALIDITY_IN_MILISECONDS/1000));
 
         httpServletResponse.addCookie(tokenCookie);
     }
 
+    // Read the secret key from a file
     private String getKeyString(){
         try (var inputStream = getClass().getResourceAsStream(JWT_SECRET_FILE_LOCATION);
              InputStreamReader inputStreamReader = new InputStreamReader(Objects.requireNonNull(inputStream));
