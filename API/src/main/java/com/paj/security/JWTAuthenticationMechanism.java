@@ -46,15 +46,19 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
             return usernameAndPasswordLogin(httpServletRequest, httpServletResponse, httpMessageContext);
 
         // Otherwise, check that the request is coming with a valid JWT cookie
-        return validateToken(httpServletRequest, httpServletResponse, httpMessageContext);
+        return validateToken(httpServletRequest, httpMessageContext);
     }
 
     private AuthenticationStatus usernameAndPasswordLogin(HttpServletRequest httpServletRequest,
                                                           HttpServletResponse httpServletResponse,
                                                           HttpMessageContext httpMessageContext) {
+        // Check that the authorization header exists
+        var authHeader = httpServletRequest.getHeader("Authorization");
+        if(authHeader == null)
+            return httpMessageContext.responseUnauthorized();
+
         // Parse the authentication header and get the username and password
-        var authHeader = httpServletRequest.getHeader("Authorization")
-                .replace("Basic ", "");
+        authHeader = authHeader.replace("Basic ", "");
         var usernameAndPassword = new String(Base64.getDecoder().decode(authHeader))
                 .split(":");
 
@@ -72,7 +76,6 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     }
 
     private AuthenticationStatus validateToken(HttpServletRequest httpServletRequest,
-                                               HttpServletResponse httpServletResponse,
                                                HttpMessageContext httpMessageContext) {
         var cookies = httpServletRequest.getCookies();
         // If no cookies are found, respond with unauthorized
