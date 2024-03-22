@@ -17,6 +17,7 @@ public class MockIdentityStore implements IdentityStore {
         validUsers.put("User2", new UsernamePasswordCredential("User2", "pass2"));
         validUsers.put("User3", new UsernamePasswordCredential("User3", "pass3"));
         validUsers.put("User4", new UsernamePasswordCredential("User4", "pass4"));
+        validUsers.put("test@test.co", new UsernamePasswordCredential("test@test.co", "pass"));
     }
 
     public CredentialValidationResult validate(UsernamePasswordCredential credential) {

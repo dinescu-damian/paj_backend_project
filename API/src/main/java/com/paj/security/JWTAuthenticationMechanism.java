@@ -3,6 +3,7 @@ package com.paj.security;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.security.enterprise.AuthenticationException;
@@ -59,8 +60,18 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
 
         // Parse the authentication header and get the username and password
         authHeader = authHeader.replace("Basic ", "");
-        var usernameAndPassword = new String(Base64.getDecoder().decode(authHeader))
-                .split(":");
+        String[] usernameAndPassword;
+        try {
+            usernameAndPassword = new String(Base64.getDecoder().decode(authHeader))
+                    .split(":");
+
+            // If the split resulted in any number of parts different to 2, return unauthorized
+            if(usernameAndPassword.length != 2)
+                return httpMessageContext.responseUnauthorized();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return httpMessageContext.responseUnauthorized();
+        }
 
         // Validate the username and password using the identity store
         var validationResult = identityStore.validate(
@@ -91,8 +102,9 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
         if(tokenCookie.isEmpty())
             return httpMessageContext.responseUnauthorized();
 
-        var token = JWT.decode(tokenCookie.get().getValue());
+        DecodedJWT token;
         try {
+            token = JWT.decode(tokenCookie.get().getValue());
             // Verify that the token has not been modified by checking that the signature matches
             var algorithm = Algorithm.HMAC256(getKeyString());
             JWT.require(algorithm)
