@@ -5,5 +5,19 @@
              version="3.0">
     <persistence-unit name="default">
 
+        <class>com.paj.api.entities.Role</class>
+        <class>com.paj.api.entities.User</class>
+        <class>com.paj.api.entities.FriendRequest</class>
+        <class>com.paj.api.entities.Trip</class>
+        <class>com.paj.api.entities.Comment</class>
+        <class>com.paj.api.entities.TripPhoto</class>
+
+        <properties>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5433/travel"/>
+            <property name="jakarta.persistence.jdbc.user" value="postgres"/>
+            <property name="jakarta.persistence.jdbc.password" value="1q2w3e"/>
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
+        </properties>
     </persistence-unit>
 </persistence>
