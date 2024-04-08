@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "trip")
 public class Trip {
     @Id
     @GeneratedValue
