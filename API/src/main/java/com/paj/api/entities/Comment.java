@@ -3,6 +3,7 @@ package com.paj.api.entities;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "comment")
 public class Comment {
 
     @Id

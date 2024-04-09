@@ -1,14 +1,20 @@
 package com.paj.api.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 
 @Entity
 public class FriendRequest {
     //Composite primary key between two user ids
     @EmbeddedId
     private FriendRequestId id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("user_id_requester")
+    private User user_requester;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("user_id_receiver")
+    private User user_receiver;
 
     @Column(nullable = false)
     private String status;

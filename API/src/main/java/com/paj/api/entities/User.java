@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
+@Table(name = "user_account")
 public class User {
     // User ID - primary key
     @Id
@@ -32,7 +33,7 @@ public class User {
     private String location;
 
     // Link to Role entity - many to many
-    @Column(nullable = false)
+    @JoinColumn(nullable = true)
     @ManyToMany
     Set<Role> roles;
 

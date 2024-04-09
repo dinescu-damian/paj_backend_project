@@ -1,23 +1,32 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
-    <persistence-unit name="default">
+<persistence-unit name="default" transaction-type="JTA">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <jta-data-source>jdbc/__default</jta-data-source>
 
-        <class>com.paj.api.entities.Role</class>
-        <class>com.paj.api.entities.User</class>
-        <class>com.paj.api.entities.FriendRequest</class>
-        <class>com.paj.api.entities.Trip</class>
-        <class>com.paj.api.entities.Comment</class>
-        <class>com.paj.api.entities.TripPhoto</class>
+    <class>com.paj.api.entities.Role</class>
+    <class>com.paj.api.entities.User</class>
+    <class>com.paj.api.entities.FriendRequest</class>
+    <class>com.paj.api.entities.Trip</class>
+    <class>com.paj.api.entities.Comment</class>
+    <class>com.paj.api.entities.TripPhoto</class>
+    <properties>
+        <!--            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>-->
+        <!--            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/paj"/>-->
+        <!--            <property name="jakarta.persistence.jdbc.user" value="postgres"/>-->
+        <!--            <property name="jakarta.persistence.jdbc.password" value="admin"/>-->
+        <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
+        <property name="jakarta.persistence.sql-load-script-source" value="META-INF/data.sql"/>
+<!--        <property name="eclipselink.deploy-on-startup" value="true"/>-->
+        <property name="eclipselink.logging.level" value="INFO"/>
+<!--        <property name="eclipselink.logging.level.sql" value="CONFIG"/>-->
+<!--        <property name="eclipselink.jdbc.fetch-size" value="1000"/>-->
+<!--        <property name="eclipselink.jdbc.cache-statements" value="true"/>-->
+<!--        <property name="eclipselink.persistence-context.flush-mode" value="commit"/>-->
+<!--        <property name="eclipselink.ddl-generation.output-mode" value="database"/>-->
 
-        <properties>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5433/travel"/>
-            <property name="jakarta.persistence.jdbc.user" value="postgres"/>
-            <property name="jakarta.persistence.jdbc.password" value="1q2w3e"/>
-            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>
-        </properties>
-    </persistence-unit>
+    </properties>
+</persistence-unit>
 </persistence>

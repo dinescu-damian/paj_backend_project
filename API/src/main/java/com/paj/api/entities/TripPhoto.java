@@ -3,6 +3,7 @@ package com.paj.api.entities;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "trip_photo")
 public class TripPhoto {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
