@@ -1,15 +1,13 @@
 package com.paj.security;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.security.enterprise.credential.Credential;
 import jakarta.security.enterprise.credential.UsernamePasswordCredential;
 import jakarta.security.enterprise.identitystore.CredentialValidationResult;
-import jakarta.security.enterprise.identitystore.IdentityStore;
+import jakarta.security.enterprise.identitystore.IdentityStoreHandler;
 
 import java.util.HashMap;
-import java.util.Set;
 
-@ApplicationScoped
-public class MockIdentityStore implements IdentityStore {
+public class MockIdentityStore implements IdentityStoreHandler {
 
     HashMap<String, UsernamePasswordCredential> validUsers = new HashMap<>();
     {
@@ -20,7 +18,7 @@ public class MockIdentityStore implements IdentityStore {
         validUsers.put("test@test.co", new UsernamePasswordCredential("test@test.co", "pass"));
     }
 
-    public CredentialValidationResult validate(UsernamePasswordCredential credential) {
+    public CredentialValidationResult validateUsernamePassCredentials(UsernamePasswordCredential credential) {
         var existingUser = validUsers.get(credential.getCaller());
         if(existingUser != null && existingUser.getPassword().compareTo(credential.getPasswordAsString()))
             return new CredentialValidationResult(existingUser.getCaller());
@@ -29,7 +27,7 @@ public class MockIdentityStore implements IdentityStore {
     }
 
     @Override
-    public Set<ValidationType> validationTypes() {
-        return Set.of(ValidationType.VALIDATE);
+    public CredentialValidationResult validate(Credential credential) {
+        return validateUsernamePassCredentials((UsernamePasswordCredential) credential);
     }
 }

@@ -6,12 +6,12 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.security.enterprise.AuthenticationException;
 import jakarta.security.enterprise.AuthenticationStatus;
 import jakarta.security.enterprise.authentication.mechanism.http.HttpAuthenticationMechanism;
 import jakarta.security.enterprise.authentication.mechanism.http.HttpMessageContext;
 import jakarta.security.enterprise.credential.UsernamePasswordCredential;
 import jakarta.security.enterprise.identitystore.CredentialValidationResult;
+import jakarta.security.enterprise.identitystore.IdentityStoreHandler;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +25,6 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
 
-
 @ApplicationScoped
 public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     private final String LOGIN_URL = "/auth/login";
@@ -35,12 +34,12 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     private final long JWT_VALIDITY_IN_MILISECONDS = (10 * 60 * 1000); // 10 minutes
 
     @Inject
-    MockIdentityStore identityStore;
+    IdentityStoreHandler identityStore;
 
     @Override
     public AuthenticationStatus validateRequest(HttpServletRequest httpServletRequest,
                                                 HttpServletResponse httpServletResponse,
-                                                HttpMessageContext httpMessageContext) throws AuthenticationException {
+                                                HttpMessageContext httpMessageContext) {
         // If the user is accessing the login URL, perform the basic authentication using username and password
         // and if correct credentials were provided, set a HttpOnly cookie containing the JWT
         if(httpServletRequest.getPathInfo().equals(LOGIN_URL) && httpServletRequest.getMethod().equals(HttpMethod.POST))
