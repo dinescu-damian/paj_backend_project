@@ -38,5 +38,9 @@ public class UserService {
         return em.createQuery("SELECT u FROM User u", User.class).getResultList();
     }
 
-
+    public User findUserByEmail(String email) {
+        return em.createQuery("SELECT u from User u where u.email = :email", User.class)
+                .setParameter("email", email)
+                .getSingleResult();
+    }
 }
