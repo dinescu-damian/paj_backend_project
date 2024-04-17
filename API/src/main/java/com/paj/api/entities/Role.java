@@ -2,8 +2,6 @@ package com.paj.api.entities;
 
 import jakarta.persistence.*;
 
-import java.util.Set;
-
 @Entity
 @Table(name = "role")
 public class Role {
@@ -15,11 +13,6 @@ public class Role {
     // Role name
     @Column(nullable = false, unique = true)
     private String role_name;
-
-    // Link to User entity - many to many
-    @JoinColumn()
-    @ManyToMany
-    Set<User> users;
 
     public Role() {
     }
@@ -38,13 +31,5 @@ public class Role {
 
     public String getRole_name() {
         return role_name;
-    }
-
-    public Set<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(Set<User> users) {
-        this.users = users;
     }
 }
