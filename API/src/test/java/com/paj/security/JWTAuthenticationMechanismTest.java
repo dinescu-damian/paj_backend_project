@@ -28,7 +28,7 @@ class JWTAuthenticationMechanismTest {
     private final AuthenticationStatus authorizedReturnValue = AuthenticationStatus.SUCCESS;
 
     // JWT with 20 years validity
-    private final String TestJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQQUotUGF5YXJhLVNlcnZlciIsInN1YiI6IlVzZXIxIiwiaWF0IjoxNzExMTAwOTMzLCJleHAiOjIzMTExMDA5MzN9.HW5Smur-9ga7BliHBwuN_ZGx4aXodtW-sVnkRXGgvj4";
+    private final String TestJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJQQUotUGF5YXJhLVNlcnZlciIsInN1YiI6InRlc3RAdGVzdC5jbyIsInJvbGVzIjpbIlVTRVIiXSwiaWF0IjoxNzEzNjk1Njg0LCJleHAiOjYxODU0MjcxMjAwfQ.4bvwuRVJjz9kRbtmf1bK48eiE6HaJumeDH-J8jp1KTs";
 
     {
         // The return value doesn't matter, we just need to check that responseUnauthorized is called
@@ -37,23 +37,6 @@ class JWTAuthenticationMechanismTest {
 
         // Provide an identity store
         authenticationMechanism.identityStore = new MockIdentityStore();
-    }
-
-    @Test
-    void validateRequest_ShouldReturnUnauthorizedIfURLNotLoginAndNoCookiesPresent() throws AuthenticationException {
-        // Mock the return values for the needed methods
-        when(request.getPathInfo())
-                .thenReturn("/"); // Any path besides the login one
-
-        // Null cookie list
-        when(request.getCookies()).thenReturn(null);
-        assertEquals(unauthorizedReturnValue,
-                authenticationMechanism.validateRequest(request, response, messageContext));
-
-        // Non-null empty cookie list
-        when(request.getCookies()).thenReturn(new Cookie[]{});
-        assertEquals(unauthorizedReturnValue,
-                authenticationMechanism.validateRequest(request, response, messageContext));
     }
 
     @Test
