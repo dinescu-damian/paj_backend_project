@@ -15,4 +15,11 @@ public class HelloResource {
     public String hello() {
         return "Hello, World!";
     }
+
+    @GET
+    @Path("/guest")
+    @RolesAllowed({"GUEST", "USER"})
+    public String helloGuest() {
+        return "Hello, Guest!";
+    }
 }
