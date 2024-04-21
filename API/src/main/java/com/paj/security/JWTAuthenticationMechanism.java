@@ -88,19 +88,24 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
 
     private AuthenticationStatus validateToken(HttpServletRequest httpServletRequest,
                                                HttpMessageContext httpMessageContext) {
+        // Used if the token is not present
+        var guestCredentials = new CredentialValidationResult(
+                "Guest", new HashSet<>(Collections.singletonList("GUEST"))
+        );
         var cookies = httpServletRequest.getCookies();
+
         // If no cookies are found, respond with unauthorized
         if(cookies == null)
-            return httpMessageContext.responseUnauthorized();
+            return httpMessageContext.notifyContainerAboutLogin(guestCredentials);
 
         // Get the token cookie
         var tokenCookie = Arrays.stream(cookies)
                 .filter(cookie -> cookie.getName().equals(JWT_COOKIE_NAME))
                 .findFirst();
 
-        // If no token cookie is present, respond with unauthorized
+        // If no token cookie is present, authorize the user as a guest
         if(tokenCookie.isEmpty())
-            return httpMessageContext.responseUnauthorized();
+            return httpMessageContext.notifyContainerAboutLogin(guestCredentials);
 
         DecodedJWT token;
         try {
@@ -110,7 +115,7 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
             JWT.require(algorithm)
                     .withIssuer(JWT_ISSUER)
                     .withClaimPresence("sub")
-                    .withClaimPresence("roles")
+                    .withClaimPresence(JWT_ROLES_CLAIM)
                     .build()
                     .verify(token);
         } catch (JWTVerificationException e) {
