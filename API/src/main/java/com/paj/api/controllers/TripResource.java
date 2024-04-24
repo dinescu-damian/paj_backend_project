@@ -3,7 +3,9 @@ package com.paj.api.controllers;
 import com.paj.api.entities.Trip;
 import com.paj.api.services.TripService;
 import com.paj.api.services.UserService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
+import jakarta.security.enterprise.SecurityContext;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
@@ -11,6 +13,9 @@ import java.util.List;
 
 @Path("/trips")
 public class TripResource {
+
+    @Inject
+    SecurityContext securityContext;
 
     @Inject
     private TripService tripService;
@@ -31,6 +36,15 @@ public class TripResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Trip> getAllTrips() {
         return tripService.getAllTrips();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("my-trips")
+    @RolesAllowed("USER")
+    public List<Trip> getAllTripsForUser() {
+        var user = userService.findUserByEmail(securityContext.getCallerPrincipal().getName());
+        return tripService.getAllTripsByUserId(user.getUser_id());
     }
 
     // Save trip

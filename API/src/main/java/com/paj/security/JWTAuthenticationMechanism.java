@@ -146,6 +146,7 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
         var tokenCookie = new Cookie(JWT_COOKIE_NAME, token);
         tokenCookie.setHttpOnly(true);
         tokenCookie.setMaxAge((int) (JWT_VALIDITY_IN_MILISECONDS/1000));
+        tokenCookie.setPath("/");
 
         httpServletResponse.addCookie(tokenCookie);
     }
