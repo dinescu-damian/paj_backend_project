@@ -28,6 +28,7 @@ import java.util.*;
 @DeclareRoles({"USER", "GUEST"})
 public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     private final String LOGIN_URL = "/auth/login";
+    private final String REGISTER_URL = "/auth/register";
     private final String JWT_SECRET_FILE_LOCATION = "/jwt.sercret";
     private final String JWT_COOKIE_NAME = "Token";
     private final String JWT_ROLES_CLAIM = "roles";
@@ -41,6 +42,10 @@ public class JWTAuthenticationMechanism implements HttpAuthenticationMechanism {
     public AuthenticationStatus validateRequest(HttpServletRequest httpServletRequest,
                                                 HttpServletResponse httpServletResponse,
                                                 HttpMessageContext httpMessageContext) {
+        // If the user attempts to create an account, pass the request forward
+        if(httpServletRequest.getPathInfo().equals(REGISTER_URL) && httpServletRequest.getMethod().equals(HttpMethod.POST))
+            return httpMessageContext.doNothing();
+
         // If the user is accessing the login URL, perform the basic authentication using username and password
         // and if correct credentials were provided, set a HttpOnly cookie containing the JWT
         if(httpServletRequest.getPathInfo().equals(LOGIN_URL) && httpServletRequest.getMethod().equals(HttpMethod.POST))
