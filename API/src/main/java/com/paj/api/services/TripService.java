@@ -30,7 +30,7 @@ public class TripService {
 
     // Delete trip
     public void deleteTrip(Trip trip) {
-        em.remove(trip);
+        em.remove(em.merge(trip));
     }
 
     // Get all trips

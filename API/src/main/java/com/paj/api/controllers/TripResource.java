@@ -1,5 +1,6 @@
 package com.paj.api.controllers;
 
+import com.paj.api.DTOs.TripCreationDTO;
 import com.paj.api.entities.Trip;
 import com.paj.api.services.TripService;
 import com.paj.api.services.UserService;
@@ -9,7 +10,11 @@ import jakarta.security.enterprise.SecurityContext;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @Path("/trips")
 public class TripResource {
@@ -26,7 +31,7 @@ public class TripResource {
     // Get trip by id. Example: /trips/1
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{id}")
+    @Path("/getById/{id}")
     public Trip getTripById(@PathParam("id") String id) {
         return tripService.findTripById(Long.parseLong(id));
     }
@@ -50,8 +55,25 @@ public class TripResource {
     // Save trip
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void saveTrip(Trip trip) {
-        tripService.saveTrip(trip);
+    @Path("save")
+    @RolesAllowed("USER")
+    public void saveTrip(TripCreationDTO trip) {
+        // Create a trip entity based in the data contained in the DTO
+        var tripEntity = new Trip();
+        var user = userService.findUserById(Long.valueOf(trip.userId()));
+
+        tripEntity.setCity(trip.city());
+        tripEntity.setCountry(trip.country());
+        tripEntity.setDescription(trip.description());
+        tripEntity.setSpending(trip.spending());
+        tripEntity.setLikes(trip.likes());
+        tripEntity.setRating(trip.rating());
+        tripEntity.setUser(user);
+        tripEntity.setDate(LocalDate.parse(trip.date(), DateTimeFormatter.ofPattern("dd/MM/yyyy")).atStartOfDay());
+
+        // Check that the trip is assigned to the authenticated user (otherwise users could create trips for other users(
+        if(securityContext.getCallerPrincipal().getName().equals(user.getEmail()))
+            tripService.saveTrip(tripEntity);
     }
 
     // Update trip
@@ -64,8 +86,14 @@ public class TripResource {
     // Delete trip
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
-    public void deleteTrip(Trip trip) {
-        tripService.deleteTrip(trip);
+    @RolesAllowed("USER")
+    @Path("/delete/{id}")
+    public void deleteTrip(@PathParam("id") String id) {
+        var trip = tripService.findTripById(Long.parseLong(id));
+        var user = userService.findUserByEmail(securityContext.getCallerPrincipal().getName());
+
+        if(Objects.equals(trip.getUser().getUser_id(), user.getUser_id()))
+            tripService.deleteTrip(trip);
     }
 
 
