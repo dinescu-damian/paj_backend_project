@@ -9,5 +9,4 @@ public record TripDTO(Long tripId,
                       String date,
                       int spending,
                       int rating,
-                      int likes,
                       String description){};

@@ -61,7 +61,6 @@ public class TripResource {
                 trip.getDate().toString(),
                 trip.getSpending(),
                 trip.getRating(),
-                trip.getLikes(),
                 trip.getDescription()))
         );
 
@@ -81,7 +80,6 @@ public class TripResource {
         tripEntity.setCountry(trip.country());
         tripEntity.setDescription(trip.description());
         tripEntity.setSpending(trip.spending());
-        tripEntity.setLikes(trip.likes());
         tripEntity.setRating(trip.rating());
         tripEntity.setUser(user);
         tripEntity.setDate(LocalDate.parse(trip.date(), DateTimeFormatter.ofPattern("dd/MM/yyyy")).atStartOfDay());
@@ -100,7 +98,6 @@ public class TripResource {
                         tripEntity.getDate().toString(),
                         tripEntity.getSpending(),
                         tripEntity.getRating(),
-                        tripEntity.getLikes(),
                         tripEntity.getDescription()
                         );
             }

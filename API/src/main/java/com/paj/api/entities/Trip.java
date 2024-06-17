@@ -41,10 +41,6 @@ public class Trip {
     @Column(nullable = false)
     private String description;
 
-    // Likes
-    @Column(nullable = false)
-    private Integer likes;
-
     public Trip() {
     }
 
@@ -110,13 +106,5 @@ public class Trip {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Integer getLikes() {
-        return likes;
-    }
-
-    public void setLikes(Integer likes) {
-        this.likes = likes;
     }
 }
