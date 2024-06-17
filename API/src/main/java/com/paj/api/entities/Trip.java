@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "trip")
 public class Trip {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long trip_id;
 
     // Foreign key to User entity

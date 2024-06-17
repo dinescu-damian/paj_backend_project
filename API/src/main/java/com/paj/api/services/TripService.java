@@ -4,6 +4,7 @@ import com.paj.api.entities.Trip;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class TripService {
     }
 
     // Save trip
+    @Transactional
     public void saveTrip(Trip trip) {
         em.persist(trip);
     }

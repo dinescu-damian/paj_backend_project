@@ -1,6 +1,6 @@
 package com.paj.api.controllers;
 
-import com.paj.api.DTOs.TripCreationDTO;
+import com.paj.api.DTOs.TripDTO;
 import com.paj.api.entities.Trip;
 import com.paj.api.services.TripService;
 import com.paj.api.services.UserService;
@@ -9,10 +9,11 @@ import jakarta.inject.Inject;
 import jakarta.security.enterprise.SecurityContext;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,9 +48,24 @@ public class TripResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("my-trips")
     @RolesAllowed("USER")
-    public List<Trip> getAllTripsForUser() {
+    public List<TripDTO> getAllTripsForUser() {
         var user = userService.findUserByEmail(securityContext.getCallerPrincipal().getName());
-        return tripService.getAllTripsByUserId(user.getUser_id());
+        var tripEntities = tripService.getAllTripsByUserId(user.getUser_id());
+
+        List<TripDTO> res = new ArrayList<>();
+        tripEntities.forEach(trip -> res.add(new TripDTO(
+                trip.getTrip_id(),
+                user.getUser_id().toString(),
+                trip.getCity(),
+                trip.getCountry(),
+                trip.getDate().toString(),
+                trip.getSpending(),
+                trip.getRating(),
+                trip.getLikes(),
+                trip.getDescription()))
+        );
+
+        return res;
     }
 
     // Save trip
@@ -57,11 +73,10 @@ public class TripResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("save")
     @RolesAllowed("USER")
-    public void saveTrip(TripCreationDTO trip) {
+    public TripDTO saveTrip(TripDTO trip) {
         // Create a trip entity based in the data contained in the DTO
         var tripEntity = new Trip();
         var user = userService.findUserById(Long.valueOf(trip.userId()));
-
         tripEntity.setCity(trip.city());
         tripEntity.setCountry(trip.country());
         tripEntity.setDescription(trip.description());
@@ -73,14 +88,29 @@ public class TripResource {
 
         // Check that the trip is assigned to the authenticated user (otherwise users could create trips for other users(
         if(securityContext.getCallerPrincipal().getName().equals(user.getEmail()))
-            tripService.saveTrip(tripEntity);
-    }
+            if(trip.tripId() == null) {
+                tripService.saveTrip(tripEntity);
 
-    // Update trip
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void updateTrip(Trip trip) {
-        tripService.updateTrip(trip);
+                // Return the created trip, provide the new ID as well
+                return new TripDTO(
+                        tripEntity.getTrip_id(),
+                        user.getUser_id().toString(),
+                        tripEntity.getCity(),
+                        tripEntity.getCountry(),
+                        tripEntity.getDate().toString(),
+                        tripEntity.getSpending(),
+                        tripEntity.getRating(),
+                        tripEntity.getLikes(),
+                        tripEntity.getDescription()
+                        );
+            }
+            else {
+                tripEntity.setTrip_id(trip.tripId());
+                tripService.updateTrip(tripEntity);
+                return trip;
+            }
+
+        return null;
     }
 
     // Delete trip
@@ -88,13 +118,19 @@ public class TripResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RolesAllowed("USER")
     @Path("/delete/{id}")
-    public void deleteTrip(@PathParam("id") String id) {
+    public Response deleteTrip(@PathParam("id") String id) {
         var trip = tripService.findTripById(Long.parseLong(id));
+
+        if(trip == null)
+            return Response.status(Response.Status.NOT_FOUND).build();
+
         var user = userService.findUserByEmail(securityContext.getCallerPrincipal().getName());
 
-        if(Objects.equals(trip.getUser().getUser_id(), user.getUser_id()))
+        if(Objects.equals(trip.getUser().getUser_id(), user.getUser_id())) {
             tripService.deleteTrip(trip);
+            return Response.status(Response.Status.OK).build();
+        }
+        else
+            return Response.status(Response.Status.UNAUTHORIZED).build();
     }
-
-
 }
