@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 public class Role {
     // Role Id - primary key
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long role_id;
 
     // Role name
